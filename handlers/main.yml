@@ -1,0 +1,11 @@
+---
+
+- name: slapd test config
+  command: slaptest
+  notify: Restart slapd
+
+- name: Restart slapd
+  service:
+    name: 'slapd'
+    state: 'restarted'
+

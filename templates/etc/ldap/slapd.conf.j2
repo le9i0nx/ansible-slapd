@@ -1,0 +1,59 @@
+# {{ ansible_managed }}
+
+# Basics
+
+{% for schema in slapd__ldap_schema %}
+include /etc/ldap/schema/{{ schema }}.schema
+{% endfor %}
+
+modulepath /usr/lib/ldap
+{% for module in slapd__modules %}
+moduleload {{ module }}
+{% endfor %}
+moduleload back_{{ slapd__backend }}
+
+allow bind_v2
+
+pidfile /run/slapd/slapd.pid
+argsfile /run/slapd/slapd.args
+
+sizelimit unlimited
+
+# Database configuration
+database {{ slapd__backend }}
+suffix "{{ slapd__basedn }}"
+rootdn "{{ slapd__basedn_admin }}"
+rootpw {{ slapd__register_basedn_admin_password.stdout | default(slapd__register_basedn_admin_hash) }}
+
+serverID {{ slapd__serverID }}
+
+{% for item in slapd__syncrepl %}
+syncrepl rid={{ item.rid }}
+  provider={{ item.provider }}
+  type=refreshAndPersist
+  retry="5 5 300 +"
+  searchbase="{{ item.searchbase }}"
+  attrs="*,+"
+  bindmethod=simple
+  binddn="{{ item.binddn }}"
+  credentials={{ item.credentials }}
+{% endfor %}
+
+directory /var/lib/ldap/
+
+{% for item in slapd__ldap_access_control_list_default %}
+access {{ item }}
+{% endfor %}
+
+mirrormode {{ slapd__mirrormode }}
+
+{% for index in slapd__ldap_index %}
+index {{ index }}
+{% endfor %}
+
+overlay syncprov
+syncprov-checkpoint 10 5
+syncprov-sessionlog 50
+lastmod on 
+loglevel 0
+
