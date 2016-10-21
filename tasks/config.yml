@@ -1,0 +1,24 @@
+---
+
+- name: Copy custom LDAP schema files
+  copy:
+    src: '{{ item }}'
+    dest: '/etc/ldap/schema/'
+    owner: 'root'
+    group: 'root'
+    mode: '0644'
+  with_items: '{{ slapd__ldap_schema_directories }}'
+  notify: [ 'slapd test config' ]
+
+
+
+- name: Create OpenLDAP server configuration
+  template:
+    src: "etc/ldap/slapd.conf.j2"
+    dest: '/etc/ldap/slapd.conf'
+    owner: 'root'
+    group: 'openldap'
+    mode: '0640'
+  notify: [ 'slapd test config' ]
+
+## vim: foldmethod=marker:tabstop=2:shiftwidth=2:softtabstop=2
