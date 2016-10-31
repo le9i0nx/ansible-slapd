@@ -24,6 +24,7 @@ database {{ slapd__backend }}
 suffix "{{ slapd__basedn }}"
 rootdn "{{ slapd__basedn_admin }}"
 rootpw {{ slapd__register_basedn_admin_password.stdout | default(slapd__register_basedn_admin_hash) }}
+maxsize 107374182400
 
 serverID {{ slapd__serverID }}
 
