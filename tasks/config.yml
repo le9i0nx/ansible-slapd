@@ -10,8 +10,6 @@
   with_items: '{{ slapd__ldap_schema_directories }}'
   notify: [ 'slapd test config' ]
 
-
-
 - name: Create OpenLDAP server configuration
   template:
     src: "etc/ldap/slapd.conf.j2"
@@ -20,5 +18,13 @@
     group: 'openldap'
     mode: '0640'
   notify: [ 'slapd test config' ]
+
+- name: copy cron.daily slapd-snapshot
+  template:
+    src: "etc/cron.daily/slapd-snapshot.j2"
+    dest: '/etc/cron.daily/slapd-snapshot'
+    owner: 'root'
+    group: 'root'
+    mode: '0711'
 
 ## vim: foldmethod=marker:tabstop=2:shiftwidth=2:softtabstop=2

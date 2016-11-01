@@ -1,0 +1,52 @@
+#!/bin/bash
+
+# This file is managed remotely, all changes will be lost
+
+# Copyright (C) 2015 Maciej Delmanowski <drybjed@gmail.com>
+# Copyright (C) 2016 Aleksey Gavrilov <le9i0nx@gmail.com>
+# Homepage: http://debops.org/
+
+# Create snapshots of OpenLDAP database
+
+SLAPCAT="/usr/sbin/slapcat"
+BACKUP_PATH="/var/backups/slapd"
+
+if [ -n "${1}" ] ; then
+    period="${1}" ; shift
+fi
+
+if [ -n "${1}" ] ; then
+    sleeptime="${1}"
+fi
+
+if [ "${period}" == "daily" ] ; then
+    counter="$(date +%w)"
+
+    DATABASE="${BACKUP_PATH}/database-${period}-${counter}.ldif"
+
+elif [ "${period}" == "weekly" ] ; then
+    counter="$((($(date +%d)-1)/7+1))"
+
+    DATABASE="${BACKUP_PATH}/database-${period}-${counter}.ldif"
+
+elif [ "${period}" == "now" ] ; then
+    now="$(date +%s)"
+
+    DATABASE="${BACKUP_PATH}/database-${now}.ldif"
+fi
+
+test -n "${DATABASE}" || DATABASE="${BACKUP_PATH}/database.ldif"
+
+if [ -n "${sleeptime}" ] ; then
+    sleep $[ ( $RANDOM % ${sleeptime} ) + 1 ]m
+fi
+
+mkdir -m 700 -p ${BACKUP_PATH}
+
+nice ${SLAPCAT} -n 1 > ${DATABASE}
+
+nice gzip -f -c ${DATABASE} > ${DATABASE}.gz && rm -f ${DATABASE}
+
+chown root:root ${BACKUP_PATH}/*
+chmod 600 ${BACKUP_PATH}/*
+
